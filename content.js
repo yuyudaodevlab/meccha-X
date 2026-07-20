@@ -10,10 +10,16 @@
   const HISTORY_PATH = "/i/post_history";
   const visibleSince = new Map();
   const observed = new WeakSet();
+  const recorded = new WeakSet();
+  const pendingPosts = new Map();
+  const pendingDurations = new Map();
   let isHistoryOpen = false;
   let previousUrl = location.href;
   let settings = { tracking: true };
   let writeQueue = Promise.resolve();
+  let storageFlushTimer = 0;
+  let mutationFrame = 0;
+  const changedRoots = new Set();
 
   const icon = (name, size = 24) => {
     const paths = {
@@ -51,9 +57,10 @@
     const textNode = article.querySelector('[data-testid="tweetText"]');
     const userNode = article.querySelector('[data-testid="User-Name"]');
     const name = userNode?.querySelector("span")?.textContent?.trim() || handle;
-    const image = [...article.querySelectorAll('img[src]')].find((img) =>
-      /pbs\.twimg\.com\/media/.test(img.src)
-    );
+    const images = [...article.querySelectorAll('[data-testid="tweetPhoto"] img[src], img[src*="pbs.twimg.com/media"]')]
+      .map((img) => img.currentSrc || img.src)
+      .filter((src, index, values) => src && values.indexOf(src) === index)
+      .slice(0, 4);
     const videoPoster = article.querySelector("video[poster]");
     const time = article.querySelector("time")?.getAttribute("datetime") || null;
 
@@ -64,43 +71,78 @@
       author: name,
       text: textNode?.innerText?.trim() || "（本文のないポスト）",
       postedAt: time,
-      thumbnail: image?.src || videoPoster?.poster || null
+      thumbnail: images[0] || videoPoster?.poster || null,
+      images: images.length ? images : (videoPoster?.poster ? [videoPoster.poster] : [])
     };
   }
 
-  function recordPost(article) {
-    if (!settings.tracking || isHistoryOpen || !document.contains(article)) return;
-    const post = parsePost(article);
-    if (!post) return;
+  function scheduleStorageFlush(delay = 180) {
+    if (storageFlushTimer) return;
+    storageFlushTimer = setTimeout(flushPendingStorage, delay);
+  }
 
-    // Several posts may finish their dwell timer together. Serializing writes keeps
-    // one storage update from accidentally overwriting another.
+  function flushPendingStorage() {
+    if (storageFlushTimer) clearTimeout(storageFlushTimer);
+    storageFlushTimer = 0;
+    if (!pendingPosts.size && !pendingDurations.size) return writeQueue;
+    const posts = new Map(pendingPosts);
+    const durations = new Map(pendingDurations);
+    pendingPosts.clear();
+    pendingDurations.clear();
+
     writeQueue = writeQueue.then(async () => {
       const data = await storageGet(KEY);
       const items = Array.isArray(data[KEY]) ? data[KEY] : [];
       const now = new Date().toISOString();
-      const index = items.findIndex((item) => item.id === post.id);
-      if (index >= 0) {
-        const old = items.splice(index, 1)[0];
-        items.unshift({ ...old, ...post, firstViewedAt: old.firstViewedAt || now, lastViewedAt: now, viewCount: (old.viewCount || 1) + 1, visibleMs: old.visibleMs || 0 });
-      } else {
-        items.unshift({ ...post, firstViewedAt: now, lastViewedAt: now, viewCount: 1, favorite: false, visibleMs: 0 });
+
+      for (const [id, pending] of posts) {
+        const index = items.findIndex((item) => item.id === id);
+        if (index >= 0) {
+          const old = items.splice(index, 1)[0];
+          const images = pending.post.images?.length ? pending.post.images : (old.images || (old.thumbnail ? [old.thumbnail] : []));
+          items.unshift({
+            ...old,
+            ...pending.post,
+            images,
+            thumbnail: images[0] || pending.post.thumbnail || old.thumbnail || null,
+            firstViewedAt: old.firstViewedAt || now,
+            lastViewedAt: pending.countAsView ? now : old.lastViewedAt,
+            viewCount: (old.viewCount || 1) + pending.viewIncrements,
+            visibleMs: old.visibleMs || 0
+          });
+        } else if (pending.countAsView) {
+          items.unshift({ ...pending.post, firstViewedAt: now, lastViewedAt: now, viewCount: 1, favorite: false, visibleMs: 0 });
+        }
+      }
+
+      for (const [id, elapsedMs] of durations) {
+        const item = items.find((entry) => entry.id === id);
+        if (item) item.visibleMs = (item.visibleMs || 0) + Math.round(elapsedMs);
       }
       await storageSet({ [KEY]: items.slice(0, MAX_ITEMS) });
     }).catch((error) => console.warn("[X Post History] 履歴の保存に失敗しました", error));
+    return writeQueue;
+  }
+
+  function queuePost(article, countAsView = true) {
+    if (!settings.tracking || isHistoryOpen || !document.contains(article)) return;
+    const post = parsePost(article);
+    if (!post) return false;
+    const old = pendingPosts.get(post.id);
+    pendingPosts.set(post.id, {
+      post: { ...(old?.post || {}), ...post },
+      countAsView: Boolean(old?.countAsView || countAsView),
+      viewIncrements: (old?.viewIncrements || 0) + (countAsView ? 1 : 0)
+    });
+    scheduleStorageFlush();
+    return true;
   }
 
   function addVisibleTime(article, elapsedMs) {
     const post = parsePost(article);
     if (!post || elapsedMs <= 0) return;
-    writeQueue = writeQueue.then(async () => {
-      const data = await storageGet(KEY);
-      const items = Array.isArray(data[KEY]) ? data[KEY] : [];
-      const item = items.find((entry) => entry.id === post.id);
-      if (!item) return;
-      item.visibleMs = (item.visibleMs || 0) + Math.round(elapsedMs);
-      await storageSet({ [KEY]: items });
-    }).catch((error) => console.warn("[X Post History] 表示時間の保存に失敗しました", error));
+    pendingDurations.set(post.id, (pendingDurations.get(post.id) || 0) + elapsedMs);
+    scheduleStorageFlush();
   }
 
   function stopVisibleTimer(article) {
@@ -139,15 +181,28 @@
     }
   }, { threshold: [0, 0.01] });
 
+  function processArticle(article) {
+    if (!(article instanceof Element) || !article.matches('article[data-testid="tweet"]')) return;
+    if (!observed.has(article)) {
+      observed.add(article);
+      observer.observe(article);
+    }
+    if (!recorded.has(article) && queuePost(article, true)) recorded.add(article);
+  }
+
+  function scanRoot(root) {
+    if (!(root instanceof Element) || !document.contains(root)) return;
+    if (root.matches('article[data-testid="tweet"]')) processArticle(root);
+    root.querySelectorAll?.('article[data-testid="tweet"]').forEach(processArticle);
+    const containingArticle = root.closest?.('article[data-testid="tweet"]');
+    if (containingArticle) {
+      processArticle(containingArticle);
+      if (recorded.has(containingArticle) && (root.matches?.('img, video') || root.querySelector?.('img, video'))) queuePost(containingArticle, false);
+    }
+  }
+
   function observePosts() {
-    document.querySelectorAll('article[data-testid="tweet"]').forEach((article) => {
-      if (!observed.has(article)) {
-        observed.add(article);
-        // Record every post X renders, even when the user scrolls past instantly.
-        recordPost(article);
-        observer.observe(article);
-      }
-    });
+    document.querySelectorAll('article[data-testid="tweet"]').forEach(processArticle);
   }
 
   function createNavItem() {
@@ -226,6 +281,7 @@
     const primary = document.querySelector('[data-testid="primaryColumn"]');
     if (!primary) return;
     flushVisibleTimers();
+    flushPendingStorage();
     isHistoryOpen = true;
     previousUrl = location.href;
     if (pushState) history.pushState({ xph: true }, "", HISTORY_PATH);
@@ -361,7 +417,7 @@
         <div class="xph-card-main">
           <div class="xph-card-meta"><strong>${escapeHtml(item.author)}</strong><span>${escapeHtml(item.handle)}</span><span>·</span><time>${escapeHtml(formatDate(item.lastViewedAt))}</time></div>
           <p>${escapeHtml(item.text)}</p>
-          ${item.thumbnail ? `<img class="xph-thumbnail" src="${escapeHtml(item.thumbnail)}" alt="ポストの画像" loading="lazy">` : ""}
+          ${(item.images?.length || item.thumbnail) ? `<div class="xph-media-grid xph-media-count-${Math.min(item.images?.length || 1, 4)}">${(item.images?.length ? item.images : [item.thumbnail]).slice(0, 4).map((src, index) => `<img src="${escapeHtml(src)}" alt="ポストの画像${index + 1}" loading="lazy">`).join("")}</div>` : ""}
           <div class="xph-card-footer"><span class="xph-duration">表示 ${formatDuration(item.visibleMs || 0)}</span><span>${item.viewCount > 1 ? `${item.viewCount}回表示` : "1回表示"}</span><span>最初: ${escapeHtml(formatDate(item.firstViewedAt))}</span></div>
         </div>
         <div class="xph-card-actions">
@@ -421,12 +477,41 @@
     return `${minutes}分${remaining ? `${remaining}秒` : ""}`;
   }
 
-  const domObserver = new MutationObserver(() => {
+  function processDomChanges() {
+    mutationFrame = 0;
+    const roots = [...changedRoots];
+    changedRoots.clear();
+    roots.forEach(scanRoot);
     createNavItem();
-    observePosts();
     if (location.pathname === HISTORY_PATH && !isHistoryOpen) openHistory(false);
     else if (location.pathname !== HISTORY_PATH && isHistoryOpen) closeHistory(false);
+  }
+
+  function queueChangedRoot(node) {
+    if (!(node instanceof Element)) return;
+    for (const existing of changedRoots) {
+      if (existing.contains(node)) return;
+      if (node.contains(existing)) changedRoots.delete(existing);
+    }
+    changedRoots.add(node);
+  }
+
+  const domObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      queueChangedRoot(mutation.target);
+      mutation.addedNodes.forEach(queueChangedRoot);
+    }
+    if (!mutationFrame) mutationFrame = requestAnimationFrame(processDomChanges);
   });
+
+  // X lazy-loads media after the post itself has been rendered. Update the
+  // existing history item when that image or video becomes available.
+  document.addEventListener("load", (event) => {
+    const media = event.target;
+    if (!(media instanceof HTMLImageElement) && !(media instanceof HTMLVideoElement)) return;
+    const article = media.closest?.('article[data-testid="tweet"]');
+    if (article && recorded.has(article)) queuePost(article, false);
+  }, true);
 
   window.addEventListener("popstate", () => {
     if (location.pathname === HISTORY_PATH) openHistory(false);
@@ -439,7 +524,10 @@
       visibleSince.clear();
     } else startTimersForVisiblePosts();
   });
-  window.addEventListener("pagehide", flushVisibleTimers);
+  window.addEventListener("pagehide", () => {
+    flushVisibleTimers();
+    flushPendingStorage();
+  });
 
   setInterval(() => {
     if (!document.hidden && settings.tracking) flushVisibleTimers();
