@@ -1,4 +1,4 @@
-# X Post History
+# めっちゃX
 
 X（旧Twitter）で画面に表示して閲覧したポストを自動保存し、Xのサイドバーから振り返れるChrome拡張です。
 
