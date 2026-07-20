@@ -1,0 +1,79 @@
+:root { --xph-blue: rgb(29, 155, 240); }
+
+#xph-nav { color: inherit; text-decoration: none; display: flex; width: fit-content; }
+.xph-nav-inner { display: flex; align-items: center; gap: 20px; padding: 12px; margin: 2px 0; border-radius: 9999px; transition: background .15s; }
+.xph-nav-inner:hover { background: rgba(231, 233, 234, .1); }
+.xph-nav-inner svg { fill: currentColor; flex: none; }
+.xph-nav-inner span { font-size: 20px; line-height: 24px; white-space: nowrap; }
+#xph-nav.xph-selected .xph-nav-inner { font-weight: 700; }
+
+.xph-native-hidden { display: none !important; }
+#xph-root { min-height: 100vh; color: rgb(231, 233, 234); background: rgb(0, 0, 0); font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; position: relative; }
+#xph-root * { box-sizing: border-box; }
+.xph-header { position: sticky; top: 0; z-index: 10; min-height: 53px; padding: 6px 10px; display: flex; align-items: center; gap: 16px; background: rgba(0, 0, 0, .88); backdrop-filter: blur(12px); border-bottom: 1px solid rgb(47, 51, 54); }
+.xph-header h1 { font-size: 20px; line-height: 24px; margin: 0; font-weight: 700; }
+.xph-header p { color: rgb(113, 118, 123); font-size: 13px; margin: 1px 0 0; }
+.xph-header > div:nth-child(2) { flex: 1; }
+.xph-icon-button, .xph-card-actions button, .xph-card-actions a { width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: inherit; display: grid; place-items: center; cursor: pointer; transition: background .15s, color .15s; }
+.xph-icon-button:hover, .xph-card-actions button:hover, .xph-card-actions a:hover { background: rgba(29, 155, 240, .1); color: var(--xph-blue); }
+.xph-icon-button svg, .xph-card-actions svg, .xph-toolbar svg, .xph-menu-panel svg, .xph-empty svg { fill: currentColor; }
+.xph-toolbar { padding: 10px 16px; display: flex; gap: 10px; border-bottom: 1px solid rgb(47, 51, 54); }
+.xph-search { flex: 1; height: 44px; border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 16px; color: rgb(113, 118, 123); background: rgb(32, 35, 39); border: 1px solid transparent; }
+.xph-search:focus-within { color: var(--xph-blue); background: transparent; border-color: var(--xph-blue); }
+.xph-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: inherit; font-size: 15px; }
+.xph-filter-button { border: 1px solid rgb(83, 100, 113); color: inherit; background: transparent; border-radius: 999px; padding: 0 15px; display: flex; align-items: center; gap: 7px; font-weight: 700; cursor: pointer; }
+.xph-filter-button:hover { background: rgba(239, 243, 244, .1); }
+.xph-date-panel { padding: 12px 16px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: end; gap: 10px; border-bottom: 1px solid rgb(47, 51, 54); background: rgb(22, 24, 28); }
+.xph-date-panel[hidden], .xph-menu-panel[hidden] { display: none; }
+.xph-date-panel label { color: rgb(113, 118, 123); font-size: 12px; display: grid; gap: 4px; flex: 1; }
+.xph-date-panel input { color-scheme: dark; width: 100%; padding: 8px; border-radius: 6px; border: 1px solid rgb(83, 100, 113); color: white; background: black; }
+.xph-date-panel button { border: 0; background: transparent; color: var(--xph-blue); padding: 9px; cursor: pointer; font-weight: 700; }
+.xph-chips { padding: 10px 16px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid rgb(47, 51, 54); }
+.xph-chips button { flex: none; border: 1px solid rgb(83, 100, 113); color: rgb(231, 233, 234); background: transparent; border-radius: 999px; padding: 7px 15px; font-weight: 700; cursor: pointer; }
+.xph-chips button:hover { background: rgba(239, 243, 244, .1); }
+.xph-chips button.active { color: white; background: var(--xph-blue); border-color: var(--xph-blue); }
+.xph-menu-panel { position: absolute; z-index: 20; top: 48px; right: 8px; width: 280px; padding: 8px 0; border-radius: 12px; overflow: hidden; background: black; box-shadow: 0 0 15px rgba(255,255,255,.2), 0 0 3px 1px rgba(255,255,255,.15); }
+.xph-menu-panel button { width: 100%; border: 0; padding: 14px 16px; display: flex; align-items: center; gap: 12px; color: inherit; background: transparent; font-size: 15px; font-weight: 700; cursor: pointer; }
+.xph-menu-panel button:hover { background: rgb(22, 24, 28); }
+.xph-menu-panel button.danger { color: rgb(244, 33, 46); }
+.xph-day-heading { padding: 10px 16px 6px; color: rgb(113, 118, 123); font-size: 14px; font-weight: 700; border-bottom: 1px solid rgb(47, 51, 54); }
+.xph-card { display: flex; gap: 8px; padding: 13px 12px 11px 16px; border-bottom: 1px solid rgb(47, 51, 54); transition: background .15s; }
+.xph-card:hover { background: rgba(255, 255, 255, .03); }
+.xph-card-main { min-width: 0; flex: 1; }
+.xph-card-meta { display: flex; gap: 5px; align-items: baseline; white-space: nowrap; overflow: hidden; font-size: 15px; }
+.xph-card-meta strong { overflow: hidden; text-overflow: ellipsis; }
+.xph-card-meta span, .xph-card-meta time { color: rgb(113, 118, 123); overflow: hidden; text-overflow: ellipsis; }
+.xph-card-main > p { font-size: 15px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 4px 0 10px; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.xph-thumbnail { display: block; width: 100%; max-height: 240px; object-fit: cover; border: 1px solid rgb(47, 51, 54); border-radius: 14px; margin: 8px 0; }
+.xph-card-footer { display: flex; gap: 16px; color: rgb(113, 118, 123); font-size: 12px; }
+.xph-card-footer .xph-duration { color: var(--xph-blue); font-weight: 700; }
+.xph-card-actions { display: flex; flex-direction: column; align-items: center; }
+.xph-card-actions a { text-decoration: none; }
+.xph-card-actions .is-favorite { color: rgb(255, 212, 0); }
+.xph-card-actions .is-favorite svg { filter: drop-shadow(0 0 4px rgba(255, 212, 0, .25)); }
+.xph-card-actions button[data-action="delete"]:hover { color: rgb(244, 33, 46); background: rgba(244, 33, 46, .1); }
+.xph-empty { text-align: center; padding: 70px 44px; color: rgb(113, 118, 123); }
+.xph-empty h2 { color: rgb(231, 233, 234); font-size: 25px; margin: 15px 0 6px; }
+.xph-empty p { line-height: 20px; margin: 0 auto; max-width: 360px; }
+.xph-toast { position: fixed; z-index: 50; left: 50%; bottom: 30px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; color: white; background: var(--xph-blue); padding: 11px 18px; border-radius: 6px; font-size: 14px; transition: .2s; box-shadow: 0 4px 15px rgba(0,0,0,.35); }
+.xph-toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+#xph-root[data-theme="light"] { color: rgb(15, 20, 25); background: white; }
+#xph-root[data-theme="light"] .xph-header { background: rgba(255,255,255,.88); border-color: rgb(239, 243, 244); }
+#xph-root[data-theme="light"] .xph-toolbar,
+#xph-root[data-theme="light"] .xph-chips,
+#xph-root[data-theme="light"] .xph-card,
+#xph-root[data-theme="light"] .xph-day-heading { border-color: rgb(239, 243, 244); }
+#xph-root[data-theme="light"] .xph-search { background: rgb(239, 243, 244); }
+#xph-root[data-theme="light"] .xph-search:focus-within { background: white; }
+#xph-root[data-theme="light"] .xph-filter-button,
+#xph-root[data-theme="light"] .xph-chips button { color: rgb(15, 20, 25); border-color: rgb(207, 217, 222); }
+#xph-root[data-theme="light"] .xph-date-panel { background: rgb(247, 249, 249); border-color: rgb(239, 243, 244); }
+#xph-root[data-theme="light"] .xph-date-panel input { color-scheme: light; color: black; background: white; border-color: rgb(207, 217, 222); }
+#xph-root[data-theme="light"] .xph-menu-panel { color: rgb(15,20,25); background: white; box-shadow: 0 0 15px rgba(101,119,134,.2), 0 0 3px 1px rgba(101,119,134,.15); }
+#xph-root[data-theme="light"] .xph-menu-panel button:hover { background: rgb(247,249,249); }
+#xph-root[data-theme="light"] .xph-card:hover { background: rgba(0,0,0,.02); }
+#xph-root[data-theme="light"] .xph-empty h2 { color: rgb(15,20,25); }
+
+@media (max-width: 1264px) { .xph-nav-inner span { display: none; } .xph-nav-inner { gap: 0; } }
+@media (max-width: 600px) { .xph-toolbar { padding: 8px; } .xph-filter-button span { display: none; } .xph-date-panel { grid-template-columns: 1fr 1fr; } .xph-card-footer span:last-child { display: none; } }
