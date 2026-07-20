@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>めっちゃX プライバシーポリシー</title>
+  <meta name="description" content="Chrome拡張機能「めっちゃX」のプライバシーポリシー">
+  <style>
+    :root{color-scheme:light dark;--blue:#1d9bf0;--text:#0f1419;--muted:#536471;--line:#cfd9de;--card:#f7f9f9;--bg:#fff}
+    @media(prefers-color-scheme:dark){:root{--text:#e7e9ea;--muted:#8b98a5;--line:#2f3336;--card:#16181c;--bg:#000}}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.75 system-ui,-apple-system,"Segoe UI","Yu Gothic",sans-serif}
+    main{width:min(820px,calc(100% - 32px));margin:0 auto;padding:64px 0 90px}.kicker{color:var(--blue);font-size:12px;font-weight:800;letter-spacing:.12em}h1{font-size:clamp(30px,6vw,46px);line-height:1.2;margin:8px 0}.subtitle{color:var(--muted);font-weight:700}.date{margin:24px 0;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px}.lead{font-size:18px;font-weight:700;border-left:4px solid var(--blue);padding:8px 0 8px 18px;margin:28px 0}h2{margin:42px 0 12px;font-size:23px;line-height:1.4}h3{font-size:17px;margin:22px 0 4px}p{margin:0 0 12px}li{margin:4px 0}code{padding:2px 5px;border-radius:5px;background:var(--card)}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:12px 14px;text-align:left;vertical-align:top;border:1px solid var(--line)}th{background:var(--card)}footer{color:var(--muted);border-top:1px solid var(--line);margin-top:52px;padding-top:20px;font-size:14px}
+  </style>
+</head>
+<body><main>
+  <div class="kicker">CHROME EXTENSION • USER DATA POLICY</div>
+  <h1>プライバシーポリシー</h1>
+  <div class="subtitle">めっちゃX（X Post History）</div>
+  <div class="date"><strong>施行日：</strong>2026年7月20日</div>
+  <p class="lead">本拡張機能が扱う履歴データは、お使いのChromeブラウザ内にのみ保存されます。外部サーバーへの送信、第三者への提供、販売、広告利用または分析利用は行いません。</p>
+
+  <h2>1. 適用範囲</h2>
+  <p>本プライバシーポリシーは、Chrome拡張機能「めっちゃX」（以下「本拡張機能」）におけるユーザーデータの取扱いに適用されます。本拡張機能は、X（x.com）上で表示されたポストを利用者自身が後から検索・閲覧できるようにすることを単一の目的としています。</p>
+
+  <h2>2. 取り扱うデータ</h2>
+  <p>本拡張機能は、利用者が初回同意画面で明示的に同意した場合に限り、次の情報を処理し、Chromeのローカルストレージに保存します。</p>
+  <ul><li>ポストの識別子、URL、投稿日時</li><li>ポスト本文、投稿者の表示名およびユーザー名</li><li>ポストに含まれる画像URLおよび動画サムネイルURL</li><li>最初・最後に表示した日時、表示回数、画面内での累計表示時間</li><li>お気に入り状態</li><li>履歴記録の有効・停止状態および同意状態などの設定</li></ul>
+  <p>本拡張機能は、Xのパスワード、認証Cookie、ダイレクトメッセージ、決済情報、健康情報、正確な位置情報を取得する目的では設計されておらず、これらを保存しません。</p>
+
+  <h2>3. データの利用目的</h2>
+  <p>データは、閲覧履歴の一覧表示、キーワード・日付・表示時間・お気に入りによる検索、閲覧回数・画像等の表示、履歴の削除およびJSON書き出しのためにのみ使用します。</p>
+
+  <h2>4. 保存場所・外部送信・第三者提供</h2>
+  <h3>保存場所</h3><p>履歴と設定は、<code>chrome.storage.local</code>を使用して利用者のブラウザ内に保存されます。保存件数の上限は3,000件です。</p>
+  <h3>外部送信</h3><p>保存した履歴・設定・閲覧行動を、開発者または第三者のサーバーへ送信しません。解析、広告、トラッキングサービスも使用しません。</p>
+  <h3>第三者提供</h3><p>ユーザーデータを販売、貸与、共有または第三者へ提供しません。信用力の判断、融資、広告、リターゲティングその他の目的にも使用しません。</p>
+
+  <h2>5. 権限の利用</h2>
+  <table><thead><tr><th>権限</th><th>利用理由</th></tr></thead><tbody><tr><td><code>storage</code></td><td>履歴、お気に入り、表示時間、記録設定および同意状態をブラウザ内に保存するため。</td></tr><tr><td><code>https://x.com/*</code></td><td>X上のポストを履歴として記録し、Xのサイドバーに履歴画面を追加するため。対象はx.comのみに限定しています。</td></tr></tbody></table>
+
+  <h2>6. リモートコード</h2><p>リモートコードを使用しません。実行されるJavaScriptとCSSはすべて拡張機能パッケージ内に含まれます。外部スクリプト、外部Wasm、<code>eval()</code>または文字列から生成したコードの実行は行いません。</p>
+  <h2>7. 利用者による管理と削除</h2><ul><li>初回同意前は履歴を記録しません。</li><li>記録を一時停止・再開できます。</li><li>履歴を個別または一括で削除できます。</li><li>アンインストールすると、Chromeが管理するローカルデータは削除されます。</li><li>履歴をJSON形式で端末へ書き出せます。</li></ul>
+  <h2>8. データの保持期間</h2><p>利用者が削除するか、本拡張機能をアンインストールするまでブラウザ内に保持されます。保存上限を超えた場合は、古い履歴から順に保存対象外となります。</p>
+  <h2>9. セキュリティ</h2><p>権限とアクセス先を単一目的に必要な最小範囲へ限定し、ユーザーデータをネットワーク送信しない設計としています。</p>
+  <h2>10. Limited Use要件</h2><p>本拡張機能によるユーザーデータの使用は、Chrome ウェブストア ユーザーデータ ポリシー（Limited Use要件を含みます）に準拠します。データは、明示した単一目的および利用者向け機能の提供・改善に必要な範囲でのみ使用します。</p>
+  <h2>11. ポリシーの変更</h2><p>データ取扱いに重要な変更がある場合は、適用前に拡張機能内またはChromeウェブストア掲載ページで通知し、必要に応じて改めて同意を取得します。</p>
+  <h2>12. お問い合わせ</h2><p>本ポリシーまたは本拡張機能に関するお問い合わせは、本拡張機能のChromeウェブストア掲載ページに記載されたサポート窓口からご連絡ください。</p>
+  <footer>© 2026 yuyudaodevlab • めっちゃX</footer>
+</main></body></html>

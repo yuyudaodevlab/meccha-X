@@ -16,7 +16,7 @@
   const pendingDurations = new Map();
   let isHistoryOpen = false;
   let previousUrl = location.href;
-  let settings = { tracking: true };
+  let settings = { tracking: false, consented: false };
   let writeQueue = Promise.resolve();
   let storageFlushTimer = 0;
   let mutationFrame = 0;
@@ -118,7 +118,43 @@
 
   async function loadSettings() {
     const data = await storageGet(SETTINGS_KEY);
-    settings = { tracking: true, ...(data[SETTINGS_KEY] || {}) };
+    settings = { tracking: false, consented: false, ...(data[SETTINGS_KEY] || {}) };
+    if (!settings.consented) settings.tracking = false;
+  }
+
+  function showConsentNotice() {
+    if (document.getElementById("xph-consent")) return;
+    const overlay = document.createElement("div");
+    overlay.id = "xph-consent";
+    overlay.innerHTML = `
+      <div class="xph-consent-card" role="dialog" aria-modal="true" aria-labelledby="xph-consent-title">
+        <div class="xph-consent-icon">${icon("history", 30)}</div>
+        <h2 id="xph-consent-title">閲覧履歴の記録について</h2>
+        <p>めっちゃXは、X上に表示されたポストの本文・投稿者名・URL・画像・閲覧日時・表示時間を、履歴検索機能のために記録します。</p>
+        <div class="xph-consent-points">
+          <span>保存先はこのChromeブラウザ内のみです</span>
+          <span>外部サーバーや第三者へ送信しません</span>
+          <span>記録の停止・個別削除・一括削除ができます</span>
+        </div>
+        <p class="xph-consent-note">「同意して記録を開始」を押すまで、ポストの情報は記録されません。</p>
+        <div class="xph-consent-actions">
+          <button id="xph-consent-decline">今は記録しない</button>
+          <button id="xph-consent-accept">同意して記録を開始</button>
+        </div>
+      </div>`;
+    document.documentElement.appendChild(overlay);
+    overlay.querySelector("#xph-consent-decline").onclick = async () => {
+      settings = { ...settings, consented: false, tracking: false, consentDecision: "declined" };
+      await storageSet({ [SETTINGS_KEY]: settings });
+      overlay.remove();
+    };
+    overlay.querySelector("#xph-consent-accept").onclick = async () => {
+      settings = { ...settings, consented: true, tracking: true, consentDecision: "accepted" };
+      await storageSet({ [SETTINGS_KEY]: settings });
+      overlay.remove();
+      observePosts();
+      startTimersForVisiblePosts();
+    };
   }
 
   function parsePost(article) {
@@ -422,6 +458,11 @@
       menu.hidden = !menu.hidden;
     };
     root.querySelector("#xph-tracking").onclick = async () => {
+      if (!settings.consented) {
+        root.querySelector("#xph-menu-panel").hidden = true;
+        showConsentNotice();
+        return;
+      }
       if (settings.tracking) {
         flushVisibleTimers();
         visibleSince.clear();
@@ -613,5 +654,6 @@
     observePosts();
     domObserver.observe(document.body, { childList: true, subtree: true });
     if (location.pathname === HISTORY_PATH) openHistory(false);
+    if (!settings.consented && !settings.consentDecision) showConsentNotice();
   });
 })();

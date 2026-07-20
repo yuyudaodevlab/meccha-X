@@ -28,6 +28,11 @@ X（旧Twitter）で画面に表示して閲覧したポストを自動保存し
 
 Xの左サイドバーに「ポストの履歴」が追加されます。
 
+## プライバシー文書
+
+- `docs/X-Post-History-Privacy-Policy.docx`：提出・保管用のWord文書
+- `docs/privacy-policy.html`：ChromeウェブストアのURL欄向け公開用ページ
+
 ## プライバシー
 
 履歴はChromeのローカルストレージに保存され、外部サーバーには送信されません。シークレットモードでは、Chromeの拡張機能設定で許可した場合のみ動作します。
