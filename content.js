@@ -6,6 +6,7 @@
 
   const KEY = "xPostHistoryItems";
   const SETTINGS_KEY = "xPostHistorySettings";
+  const CONTEXT_RELOAD_KEY = "xPostHistoryContextReload";
   const MAX_ITEMS = 3000;
   const HISTORY_PATH = "/i/post_history";
   const visibleSince = new Map();
@@ -19,6 +20,7 @@
   let writeQueue = Promise.resolve();
   let storageFlushTimer = 0;
   let mutationFrame = 0;
+  let extensionContextLost = false;
   const changedRoots = new Set();
 
   const icon = (name, size = 24) => {
@@ -38,8 +40,81 @@
     return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${paths[name]}</svg>`;
   };
 
-  const storageGet = (keys) => new Promise((resolve) => chrome.storage.local.get(keys, resolve));
-  const storageSet = (value) => new Promise((resolve) => chrome.storage.local.set(value, resolve));
+  function showContextNotice() {
+    if (document.getElementById("xph-context-notice")) return;
+    const notice = document.createElement("div");
+    notice.id = "xph-context-notice";
+    notice.innerHTML = `<strong>X Post Historyを再接続できませんでした</strong><span>Xのページを再読み込みしてください。</span><button>再読み込み</button>`;
+    notice.querySelector("button").onclick = () => location.reload();
+    document.documentElement.appendChild(notice);
+  }
+
+  function handleStorageFailure(error) {
+    if (extensionContextLost) return;
+    extensionContextLost = true;
+    console.warn("[X Post History] 拡張機能の更新により保存機能との接続が切れました。再接続します。", error);
+    const lastReload = Number(sessionStorage.getItem(CONTEXT_RELOAD_KEY) || 0);
+    if (Date.now() - lastReload > 15000) {
+      sessionStorage.setItem(CONTEXT_RELOAD_KEY, String(Date.now()));
+      setTimeout(() => location.reload(), 100);
+    } else {
+      showContextNotice();
+    }
+  }
+
+  function storageGet(keys) {
+    return new Promise((resolve) => {
+      const area = globalThis.chrome?.storage?.local;
+      if (!area) {
+        handleStorageFailure(new Error("chrome.storage.local is unavailable"));
+        resolve({});
+        return;
+      }
+      try {
+        area.get(keys, (result) => {
+          const error = globalThis.chrome?.runtime?.lastError;
+          if (error) {
+            handleStorageFailure(error);
+            resolve({});
+            return;
+          }
+          extensionContextLost = false;
+          sessionStorage.removeItem(CONTEXT_RELOAD_KEY);
+          resolve(result || {});
+        });
+      } catch (error) {
+        handleStorageFailure(error);
+        resolve({});
+      }
+    });
+  }
+
+  function storageSet(value) {
+    return new Promise((resolve) => {
+      const area = globalThis.chrome?.storage?.local;
+      if (!area) {
+        handleStorageFailure(new Error("chrome.storage.local is unavailable"));
+        resolve(false);
+        return;
+      }
+      try {
+        area.set(value, () => {
+          const error = globalThis.chrome?.runtime?.lastError;
+          if (error) {
+            handleStorageFailure(error);
+            resolve(false);
+            return;
+          }
+          extensionContextLost = false;
+          sessionStorage.removeItem(CONTEXT_RELOAD_KEY);
+          resolve(true);
+        });
+      } catch (error) {
+        handleStorageFailure(error);
+        resolve(false);
+      }
+    });
+  }
 
   async function loadSettings() {
     const data = await storageGet(SETTINGS_KEY);

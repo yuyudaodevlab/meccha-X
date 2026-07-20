@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X Post History",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Xで閲覧したポストを保存し、検索・日付絞り込みできる履歴を追加します。",
   "permissions": ["storage"],
   "host_permissions": ["https://x.com/*", "https://twitter.com/*"],
