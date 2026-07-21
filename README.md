@@ -19,7 +19,9 @@ X（旧Twitter）で画面に表示して閲覧したポストを自動保存し
 - 拡張機能の更新で保存APIとの接続が切れた場合に自動再接続
 
 ## インストール
-
+### chromeウェブストアからインストール
+https://chromewebstore.google.com/detail/peobkadbnjniaeeicndcdcdmgfmicgpg?utm_source=item-share-cb
+### 手動インストール
 1. Chromeで `chrome://extensions` を開く
 2. 右上の「デベロッパー モード」をオンにする
 3. 「パッケージ化されていない拡張機能を読み込む」を選ぶ
